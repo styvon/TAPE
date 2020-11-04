@@ -1,0 +1,5 @@
+useDynLib(TAPE)
+importFrom(Rcpp, evalCpp)
+importFrom(RcppParallel, RcppParallelLibs)
+import(SAIGE)
+exportPattern("^[[:alpha:]]+")

@@ -1,0 +1,15 @@
+Package: TAPE
+Type: Package
+Title: What the package does (short line)
+Version: 1.0
+Date: 2020-04-01
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: GPL-3
+Imports: Rcpp (>= 1.0.3)
+LinkingTo: Rcpp, RcppArmadillo, RcppParallel
+Encoding: UTF-8
+RoxygenNote: 7.1.0
+Suggests: 
+    testthat (>= 2.1.0)
