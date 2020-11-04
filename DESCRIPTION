@@ -1,11 +1,11 @@
 Package: TAPE
 Type: Package
-Title: What the package does (short line)
+Title: TAPE
 Version: 0.1
 Date: 2020-04-01
-Author: Who wrote it
+Author: Y Z
 Maintainer: Y Z <zyongwen@umich.edu>
-Description: More about what it does (maybe more than one line)
+Description: -
 License: GPL-3
 Imports: Rcpp (>= 1.0.3)
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
