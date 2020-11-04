@@ -1,14 +1,10 @@
 Package: TAPE
 Type: Package
 Title: What the package does (short line)
-<<<<<<< HEAD
-Version: 1.0
-=======
 Version: 0.1
->>>>>>> 1e25013... Update DESCRIPTION: add links to GitHub
 Date: 2020-04-01
 Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Maintainer: Y Z <zyongwen@umich.edu>
 Description: More about what it does (maybe more than one line)
 License: GPL-3
 Imports: Rcpp (>= 1.0.3)
@@ -17,8 +13,5 @@ Encoding: UTF-8
 RoxygenNote: 7.1.0
 Suggests: 
     testthat (>= 2.1.0)
-<<<<<<< HEAD
-=======
 URL: https://github.com/styvon/TAPE
 BugReports: https://github.com/styvon/TAPE/issues
->>>>>>> 1e25013... Update DESCRIPTION: add links to GitHub
