@@ -18,7 +18,9 @@
 #' @export
 TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="bfile", thresh_maf=0, thresh_mac=0, snpbatch_size=20000, espa_nt=9999, espa_range=c(-20,20), 
                      bgi_file="1",snplist_file="", verbose=FALSE){
-  cat("Starting TAPEtest...\n")
+  if(verbose){
+    cat("Starting TAPEtest...\n")
+  }
   # ==== validate null model ======
   if(!(class(null_object) %in% c("glmmkin", "glmmai","tape_null"))){
     stop("Object class not supported")
@@ -56,7 +58,10 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
     output_header <- c("CHR","BP","SNPID","ALT","REF","AC","AF", "MAF", "SCORE", "VAR", "PVAL", "PVAL_NORM")
   }
   
-  cat("Genotype format:", genfile_format, "\n")
+  if(verbose){
+    cat("Genotype format:", genfile_format, "\n")
+  }
+  
   if(genfile_format=="bfile"){
     # ==== 1. PLINK format =======
     # ==== * validate genotype file =======

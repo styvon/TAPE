@@ -53,7 +53,7 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
                             nrun_trace = 30, cutoff_trace = 0.0025, inv_normalize=FALSE,
                             verbose=FALSE, outFile="",n_memchunk=1, loco=FALSE, tol_tau=1e-5,
                             tol_coef=0.1){
-  
+  pt_start <- proc.time()
   if(inv_normalize){
     phenoCol=as.character(as.formula(formula)[2])
     cat("Perform the inverse nomalization for ",phenoCol,"\n")
@@ -61,23 +61,29 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
     data[,which(colnames(data) == phenoCol)] = invPheno
   }
   
+  # ==== 1. Fixed effect estimation ====
   fit0 <- glm(formula, data=data,family=gaussian)
-  
+  pt_glm <- proc.time()
   if(verbose){
-    cat("GLM completed.\n")
+    cat("Fixed effect estimation completed in", pt_glm - pt_start, "secs\n")
     print(fit0)
+    cat(paste0(rep("-",16),collapse=""),"\n\n")
   }
   
+  # ==== 2. Variance component estimation ====
   nullmodel_lmm<-glmmaiNullModel(fit0,KgenFile=KgenFile, idstoIncludeFile=idstoIncludeFile,
                                  K=K,KmatFile=KmatFile, tau=tau, fixtau=fixtau,
                                  maxiter=maxiter, tol=tol, tol_pcg=tol_pcg,maxiter_pcg=maxiter_pcg,
                                  cutoff_trace = cutoff_trace, 
                                  verbose=verbose, nrun_trace=nrun_trace,n_memchunk=n_memchunk,
                                  loco=loco,tol_tau=tol_tau,tol_coef=tol_coef)
+  pt_lmm <- proc.time()
   if(verbose){
-    cat("GLMM (gaussian family) completed\n")
+    cat("Variance component estimation completed in", pt_lmm - pt_glm, "secs\n")
+    cat(paste0(rep("-",16),collapse=""),"\n\n")
   }
-
+  
+  # ==== 3. CGF approximation ====
   idx0 = qcauchy(1:length_out/(length_out+1))
   idx1 = idx0*max(range)/max(idx0)
   resid = as.vector(nullmodel_lmm$residuals)
@@ -104,19 +110,37 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
   K_org_emp<-approxfun(cumul[,1], cumul[,2], rule=2)
   K_1_emp<-approxfun(cumul[,1], cumul[,3], rule=2)
   K_2_emp<-approxfun(cumul[,1], cumul[,4], rule=2)
-
   
+  pt_cgf <- proc.time()
+  if(verbose){
+    cat("CGF approximation completed in", pt_cgf - pt_lmm, "secs\n")
+    cat(paste0(rep("-",16),collapse=""),"\n\n")
+  }
+  
+  # ==== 4. Collect model object components ====
   mu = as.vector(nullmodel_lmm$linear_predictors)
   X = nullmodel_lmm$X
   XVX <- t(X) %*% (X)
   XVX_inv_VXt=solve(XVX) %*% t(X)
   score0_nok=colSums(X*fit0$residuals)
   
+  pt_collect <- proc.time()
+  if(verbose){
+    cat("Model object components collected in", pt_collect - pt_cgf, "secs\n")
+    cat(paste0(rep("-",16),collapse=""),"\n\n")
+  }
+  
+  # ==== 5. Variance ratio estimation ====
   if(is.null(VRgenFile)){
     cat("VRgenFile is NULL, variance ratio set to 1\n")
     var_ratio <- 1
   }else{
     var_ratio <- getVR(genfile=VRgenFile, object=nullmodel_lmm, idx = idx_ratio, vresid=var_resid, outfile=outFile)
+  }
+  pt_vr <- proc.time()
+  if(verbose){
+    cat("Variance ratio estimation completed in", pt_vr - pt_collect, "secs\n")
+    cat(paste0(rep("-",16),collapse=""),"\n\n")
   }
   
   # loco
@@ -163,6 +187,11 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
                       K_2_emp_LOCO = K_2_emp_LOCO,
                       mu_LOCO = mu_LOCO)
     
+    pt_loco <- proc.time()
+    if(verbose){
+      cat("LOCO-related calculation completed in", pt_loco - pt_vr, "secs\n")
+      cat(paste0(rep("-",16),collapse=""),"\n\n")
+    }
     
   }else{
     # if not loco
