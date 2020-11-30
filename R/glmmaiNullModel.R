@@ -66,15 +66,11 @@ glmmaiNullModel <- function(fit0, KgenFile="", idstoIncludeFile="",K = NULL, Kma
   X = SPAtest:::ScoreTest_wSaddleApprox_Get_X1(X)
   
   alpha <- fit0$coef
-  if(verbose) {
-    cat("Fixed-effect coefficients:\n")
-    print(alpha)
-  }
   
   if( (!is.null(K)) & (KgenFile!="") ){
     #===1. Use sparse kinmat & grm from PLINK geno file [2+1 tau]====
     if(verbose){
-      cat("\nGLMM estimation with block diagonal K matrix and dense GRM constructed from Plink file input \n")
+      cat("\nVariance components: block diagonal K matrix and dense GRM constructed from Plink file input \n")
     }
     #===1.0 Initialize geno obj in c++ ====
     subSampleInGeno = as.numeric(scan(idstoIncludeFile, character(), quote = "")) # vec of int
@@ -157,7 +153,7 @@ glmmaiNullModel <- function(fit0, KgenFile="", idstoIncludeFile="",K = NULL, Kma
     #===2. Use sparse kinmat & grm from matrix file input====
     # K: sparse matrix, Kmatfile: file path to dense GRM
     if(verbose){
-      cat("\nGLMM estimation with block diagonal K matrix and dense GRM file\n")
+      cat("\nVariance components:  block diagonal K matrix and dense GRM file\n")
     }
     
     #===2.1 Initialize tau ====
@@ -201,7 +197,7 @@ glmmaiNullModel <- function(fit0, KgenFile="", idstoIncludeFile="",K = NULL, Kma
   } else if( (!is.null(K)) & (KmatFile=="") ){
     #===3. If((!is.null(K)) & (KmatFile=="")) [single kinship cov component]====
     if(verbose){
-      cat("GLMM estimation with block diagonal Kinship matrix\n")
+      cat("Variance components:  block diagonal Kinship matrix\n")
     }
     
     n_nomissing = length(Y)
@@ -245,7 +241,7 @@ glmmaiNullModel <- function(fit0, KgenFile="", idstoIncludeFile="",K = NULL, Kma
   }else if((is.null(K)) & (KgenFile!="")){
     #=== 4. Use only grm from plink file ====
     if(verbose){
-      cat("\nGLMM estimation with dense GRM constructed from Plink file input \n")
+      cat("\nVariance components: dense GRM constructed from Plink file input \n")
     }
     #===4.0 Initialize geno obj in c++ ====
     subSampleInGeno = as.numeric(scan(idstoIncludeFile, character(), quote = "")) # vec of int

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-#include <ctime>// include this header for calculating execution time 
+#include <Rcpp/Benchmark/Timer.h>
 
 #include "linkPlink.h"
 #include "pcgUtil.h"
@@ -590,13 +590,23 @@ void genoClass::printAlleleFreqVec(){
 
 // [[Rcpp::export]]
 int setgeno(std::string genofile, std::vector<int> & subSampleInGeno, float memoryChunk, bool isDiagofKinSetAsOne){
-	int start_s=clock();
+	// int start_s=clock();
+	Rcpp::Timer timer;
+	timer.step("start");
 	geno.setGenoObj(genofile, subSampleInGeno, memoryChunk, isDiagofKinSetAsOne);
+	timer.step("setgeno");
 	geno.Init_Diagof_StdGeno();
+	timer.step("init_diag");
+	NumericVector re_time(timer), re_time2;
+	re_time2 = diff(re_time);
+	Rcpp::Rcout << "Runtime : " << "\n";
+	Rcpp::Rcout << "setgeno\tinit_diag" << "\n";
+	Rcpp::Rcout << re_time2 << "\n";
+	Rcpp::Rcout << "----------------\n\n";
 	//geno.printAlleleFreqVec();
 	//geno.printGenoVec();
-	int stop_s=clock();
-	cout << "time: " << (stop_s-start_s)/float(CLOCKS_PER_SEC)*1000 << endl;
+	// int stop_s=clock();
+	// cout << "time: " << (stop_s-start_s)/float(CLOCKS_PER_SEC)*1000 << endl;
 	int out = geno.getNnomissing();
 	return(out);
 }
@@ -1682,7 +1692,7 @@ arma::fvec getTrace_plink_nok(int n_nomissing, int q, const arma::fvec& W, arma:
 // [[Rcpp::export]]
 List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::sp_mat& sparsekin, const arma::fvec& W, arma::fvec tau, arma::fvec fixtau, bool is_AI, float tol_pcg, int maxiter_pcg, int nrun_trace, float cutoff_trace){
 
-	Function warning("warning");
+	Rcpp::Timer timer;
 	// ==== variable declaration ====
 	int n = n_nomissing;
 	int q2 = arma::sum(fixtau==0);
@@ -1713,6 +1723,7 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
     float diagMean = getMeanDiagOfGRM();
     tau0(2) = tau0(2) / diagMean; // adjust by mean(diag(grm))
 
+    timer.step("start");
 	// ==== get computing components, alpha, eta ====
 	Sigma_iX = pcgsolveMat_plink(sparsekin, W, tau0, X, "Jacobi", tol_pcg, maxiter_pcg);
     Sigma_iXt = Sigma_iX.t();
@@ -1739,35 +1750,29 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
 	arma::fvec diagp = tau0(0)/W;
 	arma::fvec eta = Y - diagp % PY; 	
 
-    if(q2>0){
-		// ==== get AI: 1/2====
-		// for(int i=0; i<q2; i++){
-	    for(int i=0; i<q+1; i++){
-	    	// fill APYmat
-	    	if(i==0){ // identity mat
-	    		APYmat.col(0) = PY/W;
-	    	}
-	    	else {
-	        	if(i==1){ // sparsekin
-	        		// conversion for ops with sp_mat
-	        		// PY_temp = 0.0+sparsekin * arma::conv_to<arma::vec>::from(PY);
-	        		temp_mat = sparsekin * PYMat;
-	        		for(int i=0; i<n; i++){
-	        			temp_vec(i) = temp_mat(i,0);
-	        		}
-	        		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
-	        		APYmat.col(1)= temp_vec ; 
-	        	}
-	        	else { //GRM
-	        		APYmat.col(i)= getCrossprodGRM(PY) ;
-	        	} // end if i==1 	
-	        } // end if i==0
+	timer.step("computing_components");
 
-	        XmatVecTemp = APYmat.col(i);
+    if(q2>0){
+		// ==== fill APYmat ====
+		// ---- i=0 ----
+ 		APYmat.col(0) = PY/W;
+		// ---- i=1 (sparsekin) ----
+		// conversion for ops with sp_mat
+		// PY_temp = 0.0+sparsekin * arma::conv_to<arma::vec>::from(PY);
+		temp_mat = sparsekin * PYMat;
+		for(int j=0; j<n; j++){
+			temp_vec(j) = temp_mat(j,0);
+		}
+		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
+		APYmat.col(1)= temp_vec ; 
+		// ---- i=2 (GRM) ----
+		APYmat.col(2)= getCrossprodGRM(PY) ;
+	    
+	    // ==== get YPAPY ====
+	    for(int i=0; i<q+1; i++){
+	    	XmatVecTemp = APYmat.col(i);
 	        PAPY_1 = pcgsolve_plink(sparsekin, W, tau0, XmatVecTemp, "Jacobi", tol_pcg, maxiter_pcg);
-			// PAPY_1 = arma::solve(Sigma, XmatVecTemp, arma::solve_opts::likely_sympd	);
 			PAPY = PAPY_1 - Sigma_iX * (XSiX_inv * (Sigma_iXt * XmatVecTemp));
-			// PAPY = PAPY_1 - Sigma_iX * (XSiX_inv * (Sigma_iXt * PAPY_1));
 					
 			// fill AI
 			for(int j=0; j<=i; j++){
@@ -1782,12 +1787,14 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
 			YPAPY(i) = arma::dot(PY, APYmat.col(i));
 
 	    } // end for i
+	    timer.step("get_YPAPY");
 		
 		//====Calculate trace: 1/2====
 		// use Hutchinson’s randomized trace estimator
 		// q fixed as 2
 		Trace = getTrace_plink(n_nomissing, 2, sparsekin, W, tau0, Sigma_iX, XSiX_inv, nrun_trace, maxiter_pcg, tol_pcg, cutoff_trace);
-
+		timer.step("trace");
+		
 		//==== update tau: 1/2 ====
 		// tau0 = tau0 +  tau0 % tau0/float(n) % (YPAPY-Trace);
 		for(int i=0; i<q2; i++){
@@ -1795,67 +1802,69 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
 		}// end for i in q2
 		
 
-		// ==== get AI: 2/2 with updated tau0 ====
-		Sigma_iX = pcgsolveMat_plink(sparsekin, W, tau0, X, "Jacobi", tol_pcg, maxiter_pcg);
-		Sigma_iXt = Sigma_iX.t();
-	    Sigma_iY = pcgsolve_plink(sparsekin, W, tau0, Y, "Jacobi", tol_pcg, maxiter_pcg);  
+		// // ==== get AI: 2/2 with updated tau0 ====
+		// Sigma_iX = pcgsolveMat_plink(sparsekin, W, tau0, X, "Jacobi", tol_pcg, maxiter_pcg);
+		// Sigma_iXt = Sigma_iX.t();
+	 //    Sigma_iY = pcgsolve_plink(sparsekin, W, tau0, Y, "Jacobi", tol_pcg, maxiter_pcg);  
 
-		XSiX = arma::symmatu( Sigma_iXt * X) ;
-	    try {
-	    	XSiX_inv = arma::inv_sympd(  XSiX  ); //=cov
-	    }
-	    catch(const std::exception& e){
-	    	std::cout << "getScore_plink: XSiX not symmetric positive definite, using Cholesky decomp. inverse" << std::endl;
-	    	XSiX_inv = arma::pinv(   XSiX  ); 
-	    }   
-	    XSiX_inv_SiXt = XSiX_inv * Sigma_iXt;
-	    alpha = XSiX_inv_SiXt * Y;
-	    PY = Sigma_iY - Sigma_iX * alpha;
-	    // convert PY to sparsemat
-	    for(int i=0; i<n; i++){
-			PYMat(i,0) = PY(i);
-		}
+		// XSiX = arma::symmatu( Sigma_iXt * X) ;
+	 //    try {
+	 //    	XSiX_inv = arma::inv_sympd(  XSiX  ); //=cov
+	 //    }
+	 //    catch(const std::exception& e){
+	 //    	std::cout << "getScore_plink: XSiX not symmetric positive definite, using Cholesky decomp. inverse" << std::endl;
+	 //    	XSiX_inv = arma::pinv(   XSiX  ); 
+	 //    }   
+	 //    XSiX_inv_SiXt = XSiX_inv * Sigma_iXt;
+	 //    alpha = XSiX_inv_SiXt * Y;
+	 //    PY = Sigma_iY - Sigma_iX * alpha;
+	 //    // convert PY to sparsemat
+	 //    for(int i=0; i<n; i++){
+		// 	PYMat(i,0) = PY(i);
+		// }
 
-	    for(int i=0; i<q+1; i++){
-	    	// fill APYmat
-	    	if(i==0){ // identity mat
-	    		APYmat.col(0) = PY/W;
-	    	}
-	    	else {
-	        	if(i==1){ // sparsekin
-	        		// conversion for ops with sp_mat
-	        		// PY_temp = 0.0+sparsekin * arma::conv_to<arma::vec>::from(PY);
-	        		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
-	        		temp_mat = sparsekin * PYMat;
-	        		for(int i=0; i<n; i++){
-	        			temp_vec(i) = temp_mat(i,0);
-	        		}
-	        		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
-	        		APYmat.col(1)= temp_vec ; 
-	        	}
-	        	else { //GRM
-	        		APYmat.col(i)= getCrossprodGRM(PY) ;
-	        	} // end if i==1 	
-	        } // end if i==0
+	 //    for(int i=0; i<q+1; i++){
+	 //    	// fill APYmat
+	 //    	if(i==0){ // identity mat
+	 //    		APYmat.col(0) = PY/W;
+	 //    	}
+	 //    	else {
+	 //        	if(i==1){ // sparsekin
+	 //        		// conversion for ops with sp_mat
+	 //        		// PY_temp = 0.0+sparsekin * arma::conv_to<arma::vec>::from(PY);
+	 //        		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
+	 //        		temp_mat = sparsekin * PYMat;
+	 //        		for(int j=0; j<n; j++){
+	 //        			temp_vec(j) = temp_mat(j,0);
+	 //        		}
+	 //        		// APYmat.col(1)= arma::conv_to<arma::fvec>::from(PY_temp);
+	 //        		APYmat.col(i)= temp_vec ; 
+	 //        	}
+	 //        	else { //GRM
+	 //        		APYmat.col(i)= getCrossprodGRM(PY) ;
+	 //        	} // end if i==1 	
+	 //        } // end if i==0
 
-	        XmatVecTemp = APYmat.col(i);
-	        PAPY_1 = pcgsolve_plink(sparsekin, W, tau0, XmatVecTemp, "Jacobi", tol_pcg, maxiter_pcg);
-			PAPY = PAPY_1 - Sigma_iX * (XSiX_inv * (Sigma_iXt * XmatVecTemp));
+	 //        XmatVecTemp = APYmat.col(i);
+	 //        PAPY_1 = pcgsolve_plink(sparsekin, W, tau0, XmatVecTemp, "Jacobi", tol_pcg, maxiter_pcg);
+		// 	PAPY = PAPY_1 - Sigma_iX * (XSiX_inv * (Sigma_iXt * XmatVecTemp));
 					
-			// fill AI
-			for(int j=0; j<=i; j++){
-				AI(i,j) = arma::dot(APYmat.col(j), PAPY);			
-				if(j != i){
-					AI(j,i) = AI(i,j);
-				}	
-			}
-			YPAPY(i) = arma::dot(PY, APYmat.col(i));
-	    } // end for i
-		
-		//====Calculate trace: 2/2====
-		// use Hutchinson’s randomized trace estimator
-		// q fixed as 2
-		Trace = getTrace_plink(n_nomissing, 2, sparsekin, W, tau0, Sigma_iX, XSiX_inv, nrun_trace, maxiter_pcg, tol_pcg, cutoff_trace);
+		// 	// fill AI
+		// 	for(int j=0; j<=i; j++){
+		// 		AI(i,j) = arma::dot(APYmat.col(j), PAPY);			
+		// 		if(j != i){
+		// 			AI(j,i) = AI(i,j);
+		// 		}	
+		// 	}
+		// 	YPAPY(i) = arma::dot(PY, APYmat.col(i));
+	 //    } // end for i
+		// timer.step("AI");
+
+		// //====Calculate trace: 2/2====
+		// // use Hutchinson’s randomized trace estimator
+		// // q fixed as 2
+		// Trace = getTrace_plink(n_nomissing, 2, sparsekin, W, tau0, Sigma_iX, XSiX_inv, nrun_trace, maxiter_pcg, tol_pcg, cutoff_trace);
+		// timer.step("trace");
 
 		// ====== get dtau =======
 		arma::fvec score_vec_update(q2);
@@ -1893,6 +1902,15 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
 			}
 		} // end for i
 		
+		timer.step("get_dtau");
+
+		NumericVector re_time(timer), re_time2;
+		re_time2 = diff(re_time);
+		Rcpp::Rcout << "Runtime : " << "\n";
+		// Rcpp::Rcout << "computing_components\tget_YPAPY\ttrace\tAI\ttrace\tget_dtau" << "\n";
+		Rcpp::Rcout << "computing_components\tget_YPAPY\ttrace\tget_dtau" << "\n";
+		Rcpp::Rcout << re_time2 << "\n";
+		Rcpp::Rcout << "----------------\n\n";
 
 		//====Update tau: 2/2 in glmmaiUpdate ====
 		// List out = List::create(Named("YPAPY") = YPAPY, Named("Trace") = Trace, Named("PY") = PY, Named("AI") = AI, Named("cov") = XSiX_inv, Named("alpha") =alpha, Named("eta") = eta, Named("tau") = tau0, Named("PAPY")=PAPY_out,Named("APYmat")=APYmat);
@@ -1935,7 +1953,6 @@ List getScore_plink(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::
 // [[Rcpp::export]]
 List getScore_plink_nok(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, const arma::fvec& W, arma::fvec tau, arma::fvec fixtau, bool is_AI, float tol_pcg, int maxiter_pcg, int nrun_trace, float cutoff_trace){
 
-	Function warning("warning");
 	// ==== variable declaration ====
 	int n = n_nomissing;
 	int q2 = arma::sum(fixtau==0);
@@ -2150,7 +2167,6 @@ List getScore_plink_nok(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, co
 // [[Rcpp::export]]
 List getScore_plink_LOCO(int n_nomissing, int q, arma::fvec& Y, arma::fmat& X, arma::sp_mat& sparsekin, const arma::fvec& W, arma::fvec tau, arma::fvec fixtau, bool is_AI, float tol_pcg, int maxiter_pcg, int nrun_trace, float cutoff_trace){
 
-	Function warning("warning");
 	// ==== variable declaration ====
 	int n = n_nomissing;
 	int q2 = arma::sum(fixtau==0);

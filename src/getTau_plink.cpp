@@ -91,7 +91,7 @@ List getTau_plink(int n_nomissing, arma::sp_mat& sparsekin, arma::fvec tau, arma
 	// ======== iterative update tau ===========
 	for(i=0; i< maxiter; i++){
 		if(verbose){
-			Rcout << "Variance component estimation iteration " << i << ":" << std::endl;
+			Rcout << "------ Variance component estimation iteration " << i << " ------" << std::endl;
 		}
 		alpha0 = alpha_new;
 		tau0 = tau_new;
@@ -119,8 +119,6 @@ List getTau_plink(int n_nomissing, arma::sp_mat& sparsekin, arma::fvec tau, arma
 
 		if(verbose){
 			Rcout << "Variance component estimates: " << tau_new << std::endl;
-			Rcout << "Fixed-effect coefficients: " << alpha_new << std::endl;
-
 		}
 
 		// for gaussian family
@@ -168,7 +166,7 @@ List getTau_plink(int n_nomissing, arma::sp_mat& sparsekin, arma::fvec tau, arma
 				setLOCOid(startid, endid);
 				for( i=0; i< maxiter; i++){
 					if(verbose){
-						Rcout << "Variance component estimation iteration " << i << ":" << std::endl;
+						Rcout << "------ Variance component estimation iteration " << i << " ------" << std::endl;
 					}
 					alpha0_LOCO = alpha_new_LOCO;
 
@@ -270,7 +268,7 @@ List getTau_plink_nok(int n_nomissing, arma::fvec tau, arma::fvec fixtau, arma::
 	// ======== iterative update tau ===========
 	for( i=0; i< maxiter; i++){
 		if(verbose){
-			Rcout << "Variance component estimation iteration " << i << ":" << std::endl;
+			Rcout << "------ Variance component estimation iteration " << i << " ------" << std::endl;
 		}
 		alpha0 = alpha_new;
 		tau0 = tau_new;
@@ -297,7 +295,6 @@ List getTau_plink_nok(int n_nomissing, arma::fvec tau, arma::fvec fixtau, arma::
 
 		if(verbose){
 			Rcout << "Variance component estimates: " << tau_new << std::endl;
-			Rcout << "Fixed-effect coefficients: " << alpha_new << std::endl;
 
 		}
 
