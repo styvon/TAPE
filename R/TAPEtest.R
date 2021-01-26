@@ -14,10 +14,11 @@
 #' @param bgi_file      (Optional) Path or Suffix type for bgi file. 1="genfile.bgen.bgi", 2="genfile.bgi". Default is 1.
 #' @param snplist_file  (Optional) String, file of a subset of snp ids to be included in test . Default is ''
 #' @param verbose       (Optional) Boolean, indicator for output runtime. Default is FALSE.
+#' @param n_memchunk    (Optional) Integer. Number of memory chunks for PLINK genotype. Default is 1
 #' @return Number of tested variants, and test results at outfile 
 #' @export
 TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="bfile", thresh_maf=0, thresh_mac=0, snpbatch_size=20000, espa_nt=9999, espa_range=c(-20,20), 
-                     bgi_file="1",snplist_file="", verbose=FALSE){
+                     bgi_file="1",snplist_file="", verbose=FALSE,n_memchunk=1){
   if(verbose){
     cat("Starting TAPEtest...\n")
   }
@@ -92,8 +93,8 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
     subSampleInGeno = as.numeric(scan(idstoIncludeFile, character(), quote = "")) # vec of int
     N = length(null_object$fit0$data$IID)
     cat(N, "samples matched in plink file\n")
-    re_geno=setgeno_fast(genfile, subSampleInGeno, n_memchunk=1,n_snp_sample=-1, thresh_mac=-1)
-    n_nomissing=re_geno$n_nomissing
+    re_geno=setgeno_fast(genfile, subSampleInGeno, memoryChunk=n_memchunk)
+    n_nomissing=re_geno
     toc <- proc.time()
     time_init <- toc - tic
     if(verbose){
@@ -132,11 +133,15 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
       
       n_variants_tested = n_variants_tested + 1
       info_onevariant <- info_variants[piter,]
+      chr = as.numeric(info_onevariant$CHR)
+      
+      geno[idx_miss] <- maf*2
       if(maf>0.5){
         maf <- 1-maf
-        geno <- abs(2-geno)
+        geno <- 2-geno
         info_onevariant[,c("ALT","REF")] <- info_onevariant[,c("REF","ALT")]
       }
+      
       
       # get TAPE test results
       # if(verbose){
@@ -160,10 +165,12 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
       # } # end if(verbose)
       set_nonzero = which(geno!=0)
       geno_mat <- as.matrix(geno)
-      tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
+      tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2, N=N, AF=maf, loco_chr=chr)
       
       # append results: CHR, SNPID, BP, ALT, REF, PROPMISS, MAF, SCORE, VAR, PVAL, PVAL_NORM
-      temp_row <- c(info_onevariant, propmiss, maf, tape_results$score, tape_results$var_score, tape_results$pval, tape_results$pval_nospa)
+      temp_row <- c(info_onevariant$CHR, info_onevariant$CHR, info_onevariant$SNPID, info_onevariant$BP,
+                    info_onevariant$ALT, info_onevariant$REF,
+                    propmiss, maf, tape_results$score, tape_results$var_score, tape_results$pval, tape_results$pval_nospa)
       output <- rbind(output, temp_row)
       
       if((n_variants_tested %% snpbatch_size == 0) | (piter==n_variants)){
@@ -173,6 +180,7 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
         write.table(output, outfile, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t", append=TRUE, na="NA")
         
         output <- c()
+        gc(verbose=F)
       } # end if((n_variants_tested %% snpbatch_size == 0) | (piter==n_variants))
       
     } # end for piter in snps_in_batch
@@ -222,6 +230,7 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
     # ==== * load genfile==== 
     names_info_variants <- c("CHR","BP","SNPID","ALT","REF","AC","AF")
     n_variants_tested <- 0
+    gc(verbose=F)
     
     cat("====== Loading genotype ======\n")
     if(snplist_file==""){
@@ -252,25 +261,18 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
         SetSampleIdx(mapid_geno_to_model, N)
       } # end if verbose
       
-      cat("n_variants","variants read in\n")
+      cat(n_variants,"variants read in\n")
       
       # ==== *** get pval ==== 
       cat("====== Testing ======\n")
       output <- c()
       
       for(piter in 1:n_variants){
-        # if(verbose){
-        #   tic <- proc.time()
-        #   Gx = getDosage_bgen_noquery()
-        #   toc <- proc.time()
-        #   time_load <- toc - tic
-        #   cat("Proc time load: ",time_load,"\n")
-        # }else{
-        #   Gx = getDosage_bgen_noquery()
-        # } # end if verbose
+        
         Gx = getDosage_bgen_noquery()
         
         info_onevariant <- as.vector(unlist(Gx$variants))[-4]
+        chr = as.numeric(Gx$variants$CHR)
         AC = Gx$variants$AC
         AF = Gx$variants$AF
         maf <- min(AF, 1-AF)
@@ -283,28 +285,9 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
         n_variants_tested = n_variants_tested + 1
         geno = Gx$dosages
         
-        # get TAPE test results
-        # if(verbose){
-        #   tic <- proc.time()
-        #   set_nonzero = which(geno!=0)
-        #   geno_mat <- as.matrix(geno)
-        #   toc <- proc.time()
-        #   time_pretest <- toc - tic
-        #   cat("Proc time pretest: ",time_pretest,"\n")
-        #   
-        #   tic <- proc.time()
-        #   tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
-        #   toc <- proc.time()
-        #   time_test <- toc - tic
-        #   cat("Proc time test: ",time_test,"\n")
-        # }else{
-        #   set_nonzero = which(geno!=0)
-        #   geno_mat <- as.matrix(geno)
-        #   tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
-        # } # end if verbose
         set_nonzero = which(geno!=0)
         geno_mat <- as.matrix(geno)
-        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
+        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2,N=N, AF=AF, loco_chr=chr)
         
         
         # append results: "CHR","BP","SNPID","ALT","REF","AC","AF", MAF, SCORE, VAR, PVAL, PVAL_NORM
@@ -318,13 +301,10 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
           write.table(output, outfile, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t", append=TRUE, na="NA")
           
           output <- c()
+          gc(verbose=F)
         } # end if((n_variants_tested %% snpbatch_size == 0) | (piter==n_variants))
       } # end for piter in snps_in_batch
       
-      
-      # colnames(output) <- output_header
-      # write.table(output, outfile, quote=FALSE, row.names=FALSE, col.names=TRUE, sep="\t", append=FALSE, na="NA")
-     
       closetestGenoFile_bgenDosage()
       
     }else{
@@ -384,6 +364,7 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
         
         info_onevariant <- as.vector(unlist(Gx$variants))[-4]
         geno = Gx$dosages
+        chr = as.numeric(Gx$variants$CHR)
         AC = Gx$variants$AC
         AF = Gx$variants$AF
         maf <- min(AF, 1-AF)
@@ -416,7 +397,7 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
         # } # end if verbose
         set_nonzero = which(geno!=0)
         geno_mat <- as.matrix(geno)
-        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
+        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2, N=N, AF=AF, loco_chr=chr)
         
         
         # append results: "CHR","BP","SNPID","ALT","REF","AC","AF", MAF, SCORE, VAR, PVAL, PVAL_NORM
@@ -430,6 +411,7 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
           write.table(output, outfile, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t", append=TRUE, na="NA")
           
           output <- c()
+          gc(verbose=F)
         } # end if((n_variants_tested %% snpbatch_size == 0) | (piter==n_variants))
         
       } # end for piter
@@ -578,6 +560,7 @@ TAPEtest_profiling <- function(null_object, genfile, samplefile, outfile, genfil
         # Gx = getDosage_bgen_noquery()
         
         info_onevariant <- as.vector(unlist(Gx$variants))[-4]
+        chr = as.numeric(Gx$variants$CHR)
         AC = Gx$variants$AC
         AF = Gx$variants$AF
         maf <- min(AF, 1-AF)
@@ -611,7 +594,7 @@ TAPEtest_profiling <- function(null_object, genfile, samplefile, outfile, genfil
         # } # end if verbose
         set_nonzero = which(geno!=0)
         geno_mat <- as.matrix(geno)
-        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
+        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2, N=N, AF=AF, loco_chr=chr)
         
         
         # append results: "CHR","BP","SNPID","ALT","REF","AC","AF", MAF, SCORE, VAR, PVAL, PVAL_NORM
@@ -684,6 +667,7 @@ TAPEtest_profiling <- function(null_object, genfile, samplefile, outfile, genfil
         
         info_onevariant <- as.vector(unlist(Gx$variants))[-4]
         geno = Gx$dosages
+        chr = as.numeric(Gx$variants$CHR)
         AC = Gx$variants$AC
         AF = Gx$variants$AF
         maf <- min(AF, 1-AF)
@@ -716,7 +700,7 @@ TAPEtest_profiling <- function(null_object, genfile, samplefile, outfile, genfil
         # } # end if verbose
         set_nonzero = which(geno!=0)
         geno_mat <- as.matrix(geno)
-        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2)
+        tape_results <- Get_Pvalues_espa(object = null_object, G= geno_mat, set_nonzero = set_nonzero,cutoff = 2, N=N, AF=AF, loco_chr=chr)
         
         
         # append results: "CHR","BP","SNPID","ALT","REF","AC","AF", MAF, SCORE, VAR, PVAL, PVAL_NORM

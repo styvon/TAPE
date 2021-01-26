@@ -612,6 +612,13 @@ int setgeno(std::string genofile, std::vector<int> & subSampleInGeno, float memo
 }
 
 // [[Rcpp::export]]
+int setgeno_fast(std::string genofile, std::vector<int> & subSampleInGeno, float memoryChunk){
+	geno.setGenoObj(genofile, subSampleInGeno, memoryChunk, TRUE);
+	int out = geno.getNnomissing();
+	return(out);
+}
+
+// [[Rcpp::export]]
 void closegeno(){
 	for (int i = 0; i < geno.numofGenoArray; i++){
 		(*geno.genoVecofPointers[i]).clear();	

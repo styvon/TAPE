@@ -4,10 +4,12 @@
 #' Test for association between a SNP and a survival object
 #' @param object        Object returned from Get_Null_Model()
 #' @param G             Genotype matrix (0,1,2)
+#' @param N             Sample size in G
+#' @param AF            Allele frequency of G
 #' @param cutoff        Threshold of sd for utilizing empirical saddlepoint approximation. Default is 2
 #' @param set_nonzero   Index of individuals with non-zero genotypes
 #' @param r             Calibration factor, ratio of GPG and GWG 
-#' @param loco_chr      Indicator for leave-one-chromosome-out analysis. Default is FALSE
+#' @param loco_chr      Indicator for leave-one-chromosome-out analysis. Default is NULL
 #' @return a vector with three elements: 
 #'  * pval
 #'  * pval_nospa 
@@ -16,14 +18,8 @@
 #'  * var: variance of score
 #'  * converged: indicator for convergence
 #' @export
-Get_Pvalues_espa<-function(object, G, cutoff=2, set_nonzero, r=1, loco_chr = NULL){
-  
-  if(!(class(object) %in% c("glmmkin", "glmmai","tape_null"))) stop("Object should be an output from TAPE_Null_Model() or glmmkin()")
-  
-  AC = sum(G)
-  AF = mean(G)/2
-  N=dim(G)[1]
-  
+Get_Pvalues_espa<-function(object, G, N, AF, cutoff=2, set_nonzero, r=1, loco_chr = NULL){
+
   N_zero = N-length(set_nonzero)
   G_center = as.vector(G-2*AF) # centered geno
   G_nonzero = G[set_nonzero]
@@ -33,9 +29,9 @@ Get_Pvalues_espa<-function(object, G, cutoff=2, set_nonzero, r=1, loco_chr = NUL
     var_score = var(object$residuals)*2*AF*(1-AF)*N 
     q1 = score/sqrt(var_score)
   }else if(class(object)=="tape_null"){ # if obj is TAPE null model
-    if( (!is.null(loco_chr)) & (!is.null(object$info_LOCO))){
+    if( object$LOCO ){
       # if loco
-      resid = object$info_LOCO$mresid_LOCO[,loco_chr]
+      resid = object$info_LOCO$resid_LOCO[,loco_chr]
       var_resid = object$info_LOCO$var_resid_LOCO[loco_chr]
     }else{
       # if not loco

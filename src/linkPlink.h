@@ -94,6 +94,7 @@ struct crossProdGRM_LOCO;
 
 
 int setgeno(std::string genofile, std::vector<int> & subSampleInGeno, float memoryChunk, bool isDiagofKinSetAsOne);
+int setgeno_fast(std::string genofile, std::vector<int> & subSampleInGeno, float memoryChunk);
 void closegeno();
 void setLOCOid(int startid_LOCO, int endid_LOCO);
 int getNnomissingR();

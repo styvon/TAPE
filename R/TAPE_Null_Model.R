@@ -9,7 +9,7 @@
 #' @param length_out  Number of samples in resampling. Default is 9999
 #' @param range       Numeric vector with 2 elements. Range for the resampling. Default is c(-100,100)
 #' @param VRgenFile   String. PLINK file of genotypes for estimation of variance ratio. Default is NULL (variance ratio 1)
-#' @param idx_ratio   Vector of column index in VRgenFile for estimation of variance ratio
+#' @param idx_ratio   Integer. Number of variants used for variance ratio estimation. Default is 30.
 #' @param tau         Vector. Variance component estimates. Default is (1,0)
 #' @param fixtau      Vector. Indicators for fixed value for variance component estimates. Default is (0,0)
 #' @param maxiter     Integer. Max number of iterations to fit the LMM model. Default is 500
@@ -25,6 +25,8 @@
 #' @param loco        Indicator for leave-one-chromosome-out analysis. Default is FALSE
 #' @param tol_tau     Numeric. Minimum threshold for variance components. Default is 1e-5
 #' @param tol_coef    Numeric. Tolerance for convergence of coefficients. Default is 0.1
+#' @param tol_vr      Numeric. Tolerance for variance ratio calculation. Default is 0.001
+#' @param thresh_maf_vr Numeric. Minimum MAF for markers in variance ratio calculation. Default is 0.01.
 #' @return a null model object of class "tape_null", containing the following elements
 #' * resid
 #' * var_resid
@@ -47,12 +49,12 @@
 #' * info_LOCO
 #' @export
 TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",K=NULL, KmatFile="", length_out = 9999,range=c(-100,100),
-                            VRgenFile=NULL,idx_ratio =c(1), 
+                            VRgenFile=NULL,idx_ratio =30, 
                             tau=c(1,0), fixtau = c(0,0),
                             maxiter = 500, tol =0.02, tol_pcg = 1e-5, maxiter_pcg = 500,
                             nrun_trace = 30, cutoff_trace = 0.0025, inv_normalize=FALSE,
                             verbose=FALSE, outFile="",n_memchunk=1, loco=FALSE, tol_tau=1e-5,
-                            tol_coef=0.1){
+                            tol_coef=0.1, tol_vr=0.001,thresh_maf_vr=0.01){
   pt_start <- proc.time()
   if(inv_normalize){
     phenoCol=as.character(as.formula(formula)[2])
@@ -135,7 +137,9 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
     cat("VRgenFile is NULL, variance ratio set to 1\n")
     var_ratio <- 1
   }else{
-    var_ratio <- getVR(genfile=VRgenFile, object=nullmodel_lmm, idx = idx_ratio, vresid=var_resid, outfile=outFile)
+    var_ratio <- getVR(null_object=nullmodel_lmm, fit0=fit0, genfile=VRgenFile, K=K, 
+                       outfile=outFile, n_snp_sample=idx_ratio, thresh_maf=thresh_maf_vr,
+                       n_memchunk=n_memchunk, tol_vr=tol_vr, tol_pcg = tol_pcg, maxiter_pcg = maxiter_pcg)
   }
   pt_vr <- proc.time()
   if(verbose){
@@ -175,7 +179,7 @@ TAPE_Null_Model <- function(formula, data=NULL,KgenFile="", idstoIncludeFile="",
       K_2_emp_LOCO <- c(K_2_emp_LOCO, approxfun(cumul[,1], cumul[,4], rule=2))
       
       var_resid_LOCO = c(var_resid_LOCO, var(result_LOCO$residuals))
-      scaled_resid_LOCO = cbind(scaled_resid_LOCO, result_LOCO$residuals/sqrt(var(result_LOCO$residuals))) #N by 22
+      scaled_resid_LOCO = cbind(scaled_resid_LOCO, result_LOCO$residuals/sd(result_LOCO$residuals)) #N by 22
       mu_LOCO = cbind(mu_LOCO, as.vector(result_LOCO$linear_predictors)) #N by 22
     } # end for chr
     
