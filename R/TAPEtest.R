@@ -132,11 +132,14 @@ TAPEtest <- function(null_object, genfile, samplefile, outfile, genfile_format="
       
       n_variants_tested = n_variants_tested + 1
       info_onevariant <- info_variants[piter,]
+      
+      geno[idx_miss] <- maf*2
       if(maf>0.5){
         maf <- 1-maf
-        geno <- abs(2-geno)
+        geno <- 2-geno
         info_onevariant[,c("ALT","REF")] <- info_onevariant[,c("REF","ALT")]
       }
+      
       
       # get TAPE test results
       # if(verbose){
