@@ -1,27 +1,33 @@
+---
+title: "Simple workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
-# TAPE
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
-<!-- badges: start -->
-<!-- badges: end -->
-
-## Introduction  
-
-Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.
-
-## Installation
-
-You can install the development version of TAPE from [Github](https://github.com/styvon/TAPE) with:
-
-``` r
-devtools::install_github("styvon/TAPE",ref="main")
+```{r setup}
 library(TAPE)
 ```
 
-## Example   
+The TAPE method in general takes a three-step framework:  
+
+1. Adjust the phenotype for all individuals in the analysis based on the original case-control status and available family disease history;   
+2. Fit null linear mixed model to get parameter estimates;  
+3. Test for genetic association with the adjusted phenotype using score test statistics approximated by empirical saddlepoint approximation.  
+
+This vignette illustrates the basic workflow for the null model estimation (Step 2) and testing procedure (Step 3) of TAPE. Note that the adjusted phenotypes generated from Step 1 are already included in the input dataframe for this example.  
 
 #### 1. Input data  
-Items 1-3 are for Step 2, Items 4-5 are for Step 3
-
+Below is a minimal list of files needed for analysis using TAPE. Items 1-3 are for Step 2, Items 4-5 are for Step 3.  
 ``` r
 # 1. Path to data frame including covariates and adjusted phenotype
 file_cova = system.file("extdata", "example_cova.txt", package = "TAPE") 
@@ -38,14 +44,15 @@ file_idsingeno = system.file("extdata", "example_idsingeno.txt", package = "TAPE
 ```
 
 #### 2. Output Specification  
-Step 2 will generate a file of variance ratio information from sample markers; Step 3 will generates a summary file of test results.  
-``` r
+We then specify the destination for output files. Step 2 will generate a file of variance ratio information from sample markers and Step 3 will generate a summary file of test results.  
+```{r}
 file_output_s1 = paste0(dirname(file_cova),"/output_s1") # change this to your path for output file for step 2
 file_output_s2 = paste0(dirname(file_cova),"/output_s2.txt") # change this to your path for output file for step 3
 ```
 
-#### 3. Null model estimation (Step 2)  
-``` r
+#### 3. `TAPE_Null_Model()`: Null model estimation (Step 2)   
+We need to read in the covariate and phenotype data from `file_cova`, and (if using a 2-variance-component model) the sparse kinship matrix from `file_kmat`. The `K` argument in the function indicates the sparse kinship matrix, set `K=NULL` if sparse kinship information is not used in the mixed model.  
+```{r}
 data = read.table(file_cova,header=T)
 kmat = readRDS(file_kmat)
 
@@ -57,14 +64,8 @@ obj_null_loco <- TAPE_Null_Model(y ~ sex+age, data = data, K=kmat, KgenFile=file
 obj_null_nok <- TAPE_Null_Model(y ~ sex+age, data = data, K=NULL, KgenFile=file_geno_grm, VRgenFile = file_geno_grm, idstoIncludeFile=file_idsingeno, tau=rep(0,2),fixtau=rep(0,2),outFile=file_output_s1, verbose=T)
 ```
 
-#### 4. Score test (Step 3)
-``` r
+#### 4. `TAPEtest()`: Score test (Step 3)  
+In this step, the `null_object` argument takes the output object from previous step. Both bgen and PLINK binary format genotype files are supported as inputs. Set `genfile_format` argument to either "bgen" or "bfile" for the corresponding format. Note that if bgen format is used, the `bgi_file` option should also be specified.  
+```{r}
 n_variants_tested = TAPEtest(null_object=obj_null, genfile=file_geno_test, samplefile=file_idsingeno, outfile=file_output_s2, genfile_format="bgen", bgi_file="1")
 ```
-
-More details can be found in documentation and the workflow vignette:  
-``` r
-vignette("workflow")
-```
-
-

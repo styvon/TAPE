@@ -278,6 +278,10 @@ setgeno <- function(genofile, subSampleInGeno, memoryChunk, isDiagofKinSetAsOne)
     .Call('_TAPE_setgeno', PACKAGE = 'TAPE', genofile, subSampleInGeno, memoryChunk, isDiagofKinSetAsOne)
 }
 
+setgeno_fast <- function(genofile, subSampleInGeno, memoryChunk) {
+    .Call('_TAPE_setgeno_fast', PACKAGE = 'TAPE', genofile, subSampleInGeno, memoryChunk)
+}
+
 closegeno <- function() {
     invisible(.Call('_TAPE_closegeno', PACKAGE = 'TAPE'))
 }

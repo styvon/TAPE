@@ -14,7 +14,7 @@ TAPE_Null_Model(
   length_out = 9999,
   range = c(-100, 100),
   VRgenFile = NULL,
-  idx_ratio = c(1),
+  idx_ratio = 30,
   tau = c(1, 0),
   fixtau = c(0, 0),
   maxiter = 500,
@@ -29,7 +29,9 @@ TAPE_Null_Model(
   n_memchunk = 1,
   loco = FALSE,
   tol_tau = 1e-05,
-  tol_coef = 0.1
+  tol_coef = 0.1,
+  tol_vr = 0.001,
+  thresh_maf_vr = 0.01
 )
 }
 \arguments{
@@ -41,7 +43,7 @@ TAPE_Null_Model(
 
 \item{idstoIncludeFile}{String. File including a column of rsids to include for GRM construction}
 
-\item{K}{Matrix. Kinship or genetic relatedness matrix block diagonal list}
+\item{K}{Matrix. Sparse matrix for close relatedness}
 
 \item{KmatFile}{String. K matrix file location}
 
@@ -51,7 +53,7 @@ TAPE_Null_Model(
 
 \item{VRgenFile}{String. PLINK file of genotypes for estimation of variance ratio. Default is NULL (variance ratio 1)}
 
-\item{idx_ratio}{Vector of column index in VRgenFile for estimation of variance ratio}
+\item{idx_ratio}{Integer. Number of variants used for variance ratio estimation. Default is 30.}
 
 \item{tau}{Vector. Variance component estimates. Default is (1,0)}
 
@@ -82,6 +84,10 @@ TAPE_Null_Model(
 \item{tol_tau}{Numeric. Minimum threshold for variance components. Default is 1e-5}
 
 \item{tol_coef}{Numeric. Tolerance for convergence of coefficients. Default is 0.1}
+
+\item{tol_vr}{Numeric. Tolerance for variance ratio calculation. Default is 0.001}
+
+\item{thresh_maf_vr}{Numeric. Minimum MAF for markers in variance ratio calculation. Default is 0.01.}
 }
 \value{
 a null model object of class "tape_null", containing the following elements

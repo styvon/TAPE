@@ -4,12 +4,25 @@
 \alias{Get_Pvalues_espa}
 \title{P-value calculation using empirical saddlepoint approximation}
 \usage{
-Get_Pvalues_espa(object, G, cutoff = 2, set_nonzero, r = 1, loco_chr = NULL)
+Get_Pvalues_espa(
+  object,
+  G,
+  N,
+  AF,
+  cutoff = 2,
+  set_nonzero,
+  r = 1,
+  loco_chr = NULL
+)
 }
 \arguments{
 \item{object}{Object returned from Get_Null_Model()}
 
 \item{G}{Genotype matrix (0,1,2)}
+
+\item{N}{Sample size in G}
+
+\item{AF}{Allele frequency of G}
 
 \item{cutoff}{Threshold of sd for utilizing empirical saddlepoint approximation. Default is 2}
 
@@ -17,7 +30,7 @@ Get_Pvalues_espa(object, G, cutoff = 2, set_nonzero, r = 1, loco_chr = NULL)
 
 \item{r}{Calibration factor, ratio of GPG and GWG}
 
-\item{loco_chr}{Indicator for leave-one-chromosome-out analysis. Default is FALSE}
+\item{loco_chr}{Indicator for leave-one-chromosome-out analysis. Default is NULL}
 }
 \value{
 a vector with three elements: 

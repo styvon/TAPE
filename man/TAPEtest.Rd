@@ -16,7 +16,9 @@ TAPEtest(
   espa_nt = 9999,
   espa_range = c(-20, 20),
   bgi_file = "1",
-  snplist_file = ""
+  snplist_file = "",
+  verbose = FALSE,
+  n_memchunk = 1
 )
 }
 \arguments{
@@ -43,6 +45,10 @@ TAPEtest(
 \item{bgi_file}{(Optional) Path or Suffix type for bgi file. 1="genfile.bgen.bgi", 2="genfile.bgi". Default is 1.}
 
 \item{snplist_file}{(Optional) String, file of a subset of snp ids to be included in test . Default is ''}
+
+\item{verbose}{(Optional) Boolean, indicator for output runtime. Default is FALSE.}
+
+\item{n_memchunk}{(Optional) Integer. Number of memory chunks for PLINK genotype. Default is 1}
 }
 \value{
 Number of tested variants, and test results at outfile

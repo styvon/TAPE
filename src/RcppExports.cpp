@@ -245,6 +245,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// setgeno_fast
+int setgeno_fast(std::string genofile, std::vector<int>& subSampleInGeno, float memoryChunk);
+RcppExport SEXP _TAPE_setgeno_fast(SEXP genofileSEXP, SEXP subSampleInGenoSEXP, SEXP memoryChunkSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type genofile(genofileSEXP);
+    Rcpp::traits::input_parameter< std::vector<int>& >::type subSampleInGeno(subSampleInGenoSEXP);
+    Rcpp::traits::input_parameter< float >::type memoryChunk(memoryChunkSEXP);
+    rcpp_result_gen = Rcpp::wrap(setgeno_fast(genofile, subSampleInGeno, memoryChunk));
+    return rcpp_result_gen;
+END_RCPP
+}
 // closegeno
 void closegeno();
 RcppExport SEXP _TAPE_closegeno() {
@@ -730,6 +743,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TAPE_glmmaiUpdate_plink_nok", (DL_FUNC) &_TAPE_glmmaiUpdate_plink_nok, 12},
     {"_TAPE_glmmaiUpdate_plink_LOCO", (DL_FUNC) &_TAPE_glmmaiUpdate_plink_LOCO, 13},
     {"_TAPE_setgeno", (DL_FUNC) &_TAPE_setgeno, 4},
+    {"_TAPE_setgeno_fast", (DL_FUNC) &_TAPE_setgeno_fast, 3},
     {"_TAPE_closegeno", (DL_FUNC) &_TAPE_closegeno, 0},
     {"_TAPE_setLOCOid", (DL_FUNC) &_TAPE_setLOCOid, 2},
     {"_TAPE_getNnomissingR", (DL_FUNC) &_TAPE_getNnomissingR, 0},

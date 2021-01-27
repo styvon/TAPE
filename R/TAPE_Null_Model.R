@@ -4,7 +4,7 @@
 #' @param data        Data frame to be used by the formula. Default is NULL.
 #' @param KgenFile    String. PLINK file to construct the GRM
 #' @param idstoIncludeFile  String. File including a column of rsids to include for GRM construction
-#' @param K           Matrix. Kinship or genetic relatedness matrix block diagonal list
+#' @param K           Matrix. Sparse matrix for close relatedness
 #' @param KmatFile    String. K matrix file location
 #' @param length_out  Number of samples in resampling. Default is 9999
 #' @param range       Numeric vector with 2 elements. Range for the resampling. Default is c(-100,100)
