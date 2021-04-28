@@ -3,7 +3,7 @@
 #' @param formula     Formula for the regression model 
 #' @param data        Data frame to be used by the formula. Default is NULL.
 #' @param KgenFile    String. PLINK file to construct the GRM
-#' @param idstoIncludeFile  String. File including a column of rsids to include for GRM construction
+#' @param idstoIncludeFile  String. File including individuals to include for GRM construction. A column of integer individual index in genotype file in covariate file order.  
 #' @param K           Matrix. Sparse matrix for close relatedness
 #' @param KmatFile    String. K matrix file location
 #' @param length_out  Number of samples in resampling. Default is 9999
