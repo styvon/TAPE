@@ -4,6 +4,10 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
+## Updates  
+2021-06-20 v0.3.0 Faster testing procedure with GRAB integration (bgen format only)  
+2021-01-27 v0.2.1 Pilot release  
+
 ## Introduction  
 
 Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.
@@ -42,6 +46,7 @@ Step 2 will generate a file of variance ratio information from sample markers; S
 ``` r
 file_output_s1 = paste0(dirname(file_cova),"/output_s1") # change this to your path for output file for step 2
 file_output_s2 = paste0(dirname(file_cova),"/output_s2.txt") # change this to your path for output file for step 3
+file_output_s2M = paste0(dirname(file_cova),"/output_s2M.txt") # change this to your path for output file for step 3
 ```
 
 #### 3. Null model estimation (Step 2)  
@@ -59,7 +64,11 @@ obj_null_nok <- TAPE_Null_Model(y ~ sex+age, data = data, K=NULL, KgenFile=file_
 
 #### 4. Score test (Step 3)
 ``` r
+# slow version
 n_variants_tested = TAPEtest(null_object=obj_null, genfile=file_geno_test, samplefile=file_idsingeno, outfile=file_output_s2, genfile_format="bgen", bgi_file="1")
+
+# faster version (GRAB integration), only applicable to bgen format
+n_variants_tested = TAPEtestM(null_object=obj_null, genfile=file_geno_test, samplefile=file_idsingeno, outfile=file_output_s2M, genfile_format="bgen", bgi_file="1")
 ```
 
 More details can be found in documentation and the workflow vignette:  

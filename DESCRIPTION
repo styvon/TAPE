@@ -1,13 +1,13 @@
 Package: TAPE
 Type: Package
 Title: TAPE
-Version: 0.2.1
-Date: 2021-01-26
+Version: 0.3.0
+Date: 2021-06-20
 Author: Y Z
 Maintainer: Y Z <zyongwen@umich.edu>
 Description: Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.
 License: GPL-3
-Imports: Rcpp (>= 1.0.3)
+Imports: Rcpp (>= 1.0.3), BH, RSQLite
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
 Encoding: UTF-8
 RoxygenNote: 7.1.0

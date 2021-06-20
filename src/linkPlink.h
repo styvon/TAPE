@@ -2,7 +2,7 @@
 #define PKG_LINKPLINK_H
 
 
-//This is a class with attritbutes about the genotype informaiton 
+//This is a class with attributes about the genotype informaiton 
 class genoClass{
 private:
   	//COPY from RVTEST:
