@@ -285,7 +285,7 @@ TAPEtestM <- function(null_object, genfile, samplefile, outfile, genfile_format=
     }
     SampleIDs = iid_in_model
     
-    setBGENobjInCPP(file_bgen, file_bgi, as.character(iid_in_geno), as.character(iid_in_model), F, F, AlleleOrder) # in linkBgen.cpp
+    TAPE:::setBGENobjInCPP(file_bgen, file_bgi, as.character(iid_in_geno), as.character(iid_in_model), F, F, AlleleOrder) # in linkBgen.cpp
     
     # names_info_variants <- c("CHR","BP","SNPID","ALT","REF","AC","AF")
     # n_variants_tested <- 0
