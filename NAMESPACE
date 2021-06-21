@@ -1,14 +1,5 @@
-useDynLib(TAPE,.registration=TRUE)
+useDynLib(TAPE)
 importFrom(Rcpp, evalCpp)
 importFrom(RcppParallel, RcppParallelLibs)
 import(SAIGE)
 exportPattern("^[[:alpha:]]+")
-
-export(Get_Pvalues_espa)
-export(TAPE_Null_Model)
-export(TAPEtest)
-export(TAPEtestM)
-export(getVR)
-export(glmmaiNullModel)  
-
-
