@@ -9,5 +9,6 @@ export(TAPE_Null_Model)
 export(TAPEtest)
 export(TAPEtestM)
 export(getVR)
-export(glmmaiNullModel)
+export(glmmaiNullModel)  
+
 
