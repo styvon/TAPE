@@ -10,7 +10,9 @@
 
 ## Introduction  
 
-Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.
+Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.  
+
+![workflow](vignettes/workflow.png)
 
 ## Installation
 
@@ -24,7 +26,7 @@ library(TAPE)
 ## Example   
 
 #### 1. Input data  
-Items 1-3 are for Step 2, Items 4-5 are for Step 3
+Items 1-3 are for Step 1, Items 4-5 are for Step 2.  
 
 ``` r
 # 1. Path to data frame including covariates and adjusted phenotype
@@ -42,14 +44,17 @@ file_idsingeno = system.file("extdata", "example_idsingeno.txt", package = "TAPE
 ```
 
 #### 2. Output Specification  
-Step 2 will generate a file of variance ratio information from sample markers; Step 3 will generates a summary file of test results.  
+Step 1 will generate a file of variance ratio information from sample markers; Step 2 will generates a summary file of test results.  
 ``` r
 file_output_s1 = paste0(dirname(file_cova),"/output_s1") # change this to your path for output file for step 2
 file_output_s2 = paste0(dirname(file_cova),"/output_s2.txt") # change this to your path for output file for step 3
 file_output_s2M = paste0(dirname(file_cova),"/output_s2M.txt") # change this to your path for output file for step 3
 ```
 
-#### 3. Null model estimation (Step 2)  
+#### 3. Phenotype adjustment (Step 0)  
+TAPE allows for flexible choice of outcome variables. Phenotypes are adjusted using inferred risk of individuals, which can be calculated from either the formula in TAPE manuscript or other approaches like GWAX and LT-FH. In the sample code below, adjusted phenotype is stored in column `y` of the covariate file.  
+
+#### 4. Null model estimation (Step 1)  
 ``` r
 data = read.table(file_cova,header=T)
 kmat = readRDS(file_kmat)
@@ -62,7 +67,7 @@ obj_null_loco <- TAPE_Null_Model(y ~ sex+age, data = data, K=kmat, KgenFile=file
 obj_null_nok <- TAPE_Null_Model(y ~ sex+age, data = data, K=NULL, KgenFile=file_geno_grm, VRgenFile = file_geno_grm, idstoIncludeFile=file_idsingeno, tau=rep(0,2),fixtau=rep(0,2),outFile=file_output_s1, verbose=T)
 ```
 
-#### 4. Score test (Step 3)
+#### 4. Score test (Step 2)
 ``` r
 # slow version
 n_variants_tested = TAPEtest(null_object=obj_null, genfile=file_geno_test, samplefile=file_idsingeno, outfile=file_output_s2, genfile_format="bgen", bgi_file="1")
