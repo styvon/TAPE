@@ -81,4 +81,5 @@ More details can be found in documentation and the workflow vignette:
 vignette("workflow")
 ```
 
-
+#### Biobank analysis results
+See [here](https://github.com/styvon/TAPE/blob/main/vignettes/biobank_results.md) for details

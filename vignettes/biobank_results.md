@@ -5,7 +5,7 @@
 Summary statistics are displayed in tab-delimited text files with the following columns:  
 `CHR`: Chromosome of the variant;  
 `POS`: Position (bp) of the variant;  
-`RSID`: Identification ID of the variant;
+`RSID`: Identification ID of the variant;  
 `ALLELE1`;  
 `ALLELE2`;  
 `PVAL`: P-value from TAPE analysis.  
