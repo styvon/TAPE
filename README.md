@@ -2,7 +2,19 @@
 # TAPE
 
 <!-- badges: start -->
-<!-- badges: end -->
+![GitHub R package version](https://img.shields.io/github/r-package/v/styvon/TAPE)
+![medRxiv](https://img.shields.io/badge/TAPE-medRxiv%3A2021.07.04.21259997-2660A4)
+<!-- badges: end -->    
+
+In this repository you can find all codes for the paper [**Incorporating family disease history and controlling case-control imbalance for population based genetic association studies**](https://www.medrxiv.org/content/10.1101/2021.07.04.21259997). 
+
+# Table of Contents
+1. [Updates](#updates)
+2. [Introduction](#introduction)
+3. [Citation](#citation)
+4. [Installation](#installation)
+5. [Example](#example)
+6. [Biobank analysis results](#biobank-analysis-results)  
 
 ## Updates  
 2021-06-20 v0.3.0 Faster testing procedure with GRAB integration (bgen format only)  
@@ -12,7 +24,21 @@
 
 Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear mixed model (TAPE) uses adjusted phenotype capable of differentiating various family disease history configurations, and controls for case-control imbalance by empirical saddlepoint approximation. In addition to genetic relatedness, TAPE further accounts for sparse close relatedness in the variance component model to control for type I error rates.  
 
-![workflow](vignettes/workflow.png)
+![workflow](vignettes/workflow.png)  
+
+## Citation
+### Bibtex
+
+```
+@article {Zhuang2021.07.04.21259997,
+	author = {Zhuang, Yongwen and Wolford, Brooke N. and Nam, Kisung and Bi, Wenjian and Zhou, Wei and Willer, Cristen J. and Mukherjee, Bhramar and Lee, Seunggeun},
+	title = {Incorporating family disease history and controlling case-control imbalance for population based genetic association studies},
+	year = {2021},
+	doi = {10.1101/2021.07.04.21259997},
+	URL = {https://www.medrxiv.org/content/early/2021/07/06/2021.07.04.21259997},
+	journal = {medRxiv}
+}
+```
 
 ## Installation
 
@@ -81,5 +107,5 @@ More details can be found in documentation and the workflow vignette:
 vignette("workflow")
 ```
 
-#### Biobank analysis results
+## Biobank analysis results
 See [here](https://github.com/styvon/TAPE/blob/main/vignettes/biobank_results.md) for details
