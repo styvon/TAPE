@@ -3,7 +3,7 @@
 
 <!-- badges: start -->
 ![GitHub R package version](https://img.shields.io/github/r-package/v/styvon/TAPE)
-![medRxiv](https://img.shields.io/badge/TAPE-medRxiv%3A2021.07.04.21259997-2660A4)
+[![medRxiv](https://img.shields.io/badge/medRxiv-2021.07.04.21259997-2660A4)](https://doi.org/10.1101/2021.07.04.21259997)
 <!-- badges: end -->    
 
 In this repository you can find all codes for the paper [**Incorporating family disease history and controlling case-control imbalance for population based genetic association studies**](https://www.medrxiv.org/content/10.1101/2021.07.04.21259997). 
