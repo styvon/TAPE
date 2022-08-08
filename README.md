@@ -1,13 +1,11 @@
 
 # TAPE
 
-<p align="center">
 <!-- badges: start -->
 ![GitHub R package version](https://img.shields.io/github/r-package/v/styvon/TAPE)
 ![GitHub R package license](https://img.shields.io/github/license/styvon/TAPE)
 [![Bioinformatics](https://img.shields.io/badge/Bioinformatics-btac459-blue)](https://doi.org/10.1093/bioinformatics/btac459)
 <!-- badges: end -->  
-</p>
 
 In this repository you can find all codes for the paper [**Incorporating family disease history and controlling case-control imbalance for population based genetic association studies**](https://doi.org/10.1093/bioinformatics/btac459). 
 
