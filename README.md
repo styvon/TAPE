@@ -1,12 +1,15 @@
 
 # TAPE
 
+<p align="center">
 <!-- badges: start -->
 ![GitHub R package version](https://img.shields.io/github/r-package/v/styvon/TAPE)
-[![medRxiv](https://img.shields.io/badge/medRxiv-2021.07.04.21259997-2660A4)](https://doi.org/10.1101/2021.07.04.21259997)
-<!-- badges: end -->    
+![GitHub R package license](https://img.shields.io/github/license/styvon/TAPE)
+[![Bioinformatics](https://img.shields.io/badge/Bioinformatics-btac459-blue)](https://doi.org/10.1093/bioinformatics/btac459)
+<!-- badges: end -->  
+</p>
 
-In this repository you can find all codes for the paper [**Incorporating family disease history and controlling case-control imbalance for population based genetic association studies**](https://www.medrxiv.org/content/10.1101/2021.07.04.21259997). 
+In this repository you can find all codes for the paper [**Incorporating family disease history and controlling case-control imbalance for population based genetic association studies**](https://doi.org/10.1093/bioinformatics/btac459). 
 
 # Table of Contents
 1. [Updates](#updates)
@@ -27,17 +30,10 @@ Test with Adjusted Phenotype and Empirical saddlepoint approximation in linear m
 ![workflow](vignettes/workflow.png)  
 
 ## Citation
-### Bibtex
+
 
 ```
-@article {Zhuang2021.07.04.21259997,
-	author = {Zhuang, Yongwen and Wolford, Brooke N. and Nam, Kisung and Bi, Wenjian and Zhou, Wei and Willer, Cristen J. and Mukherjee, Bhramar and Lee, Seunggeun},
-	title = {Incorporating family disease history and controlling case-control imbalance for population based genetic association studies},
-	year = {2021},
-	doi = {10.1101/2021.07.04.21259997},
-	URL = {https://www.medrxiv.org/content/early/2021/07/06/2021.07.04.21259997},
-	journal = {medRxiv}
-}
+Yongwen Zhuang, Brooke N Wolford, Kisung Nam, Wenjian Bi, Wei Zhou, Cristen J Willer, Bhramar Mukherjee, Seunggeun Lee, Incorporating family disease history and controlling case–control imbalance for population-based genetic association studies, Bioinformatics, 2022;, btac459, https://doi.org/10.1093/bioinformatics/btac459
 ```
 
 ## Installation
